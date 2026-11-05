@@ -40,7 +40,7 @@
       const head = [0x50, 0x4b, 3, 4, 20, 0, 0, 8, 0, 0, 0, 0, 0x21, 0, ...u32(crc), ...u32(data.length), ...u32(data.length), ...u16(name.length), 0, 0];
       parts.push(Uint8Array.from(head), name, data);
       central.push(Uint8Array.from([0x50, 0x4b, 1, 2, 20, 0, 20, 0, 0, 8, 0, 0, 0, 0, 0x21, 0, ...u32(crc), ...u32(data.length), ...u32(data.length),
-        ...u16(name.length), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...u32(offset)]), name);
+        ...u16(name.length), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...u32(offset)]), name);
       offset += head.length + name.length + data.length;
     }
     const cdSize = central.reduce((s, a) => s + a.length, 0);
