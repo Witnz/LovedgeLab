@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en" data-effects="full"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>New Tab</title>
+<link rel="stylesheet" href="newtab.css"></head>
+<body>
+<main class="page">
+  <header class="top">
+    <div class="brand"><img src="icons/icon48.png" alt="" width="28" height="28"><span>Lovedge<b>Lab</b></span></div>
+    <div class="hello" id="hello" hidden><span id="greet"></span><span id="clock"></span></div>
+    <button id="gear" type="button" title="Customise" aria-label="Customise LovedgeLab">&#9881;</button>
+  </header>
+
+  <div class="main">
+    <section class="section">
+      <h2 class="sh">Quick sites</h2>
+      <div class="daily" id="daily"></div>
+      <p class="empty" id="noTiles" hidden>No quick sites yet. Open Customise to add your own.</p>
+    </section>
+    <section class="col">
+      <h2 class="sh">Notepad</h2>
+      <div class="side">
+        <div class="nphead"><b>Notes</b><span id="saved">&#9679; saved</span></div>
+        <div id="view" class="md" tabindex="0" role="textbox" aria-readonly="true" aria-label="Notepad (press Enter to edit)" hidden></div>
+        <textarea id="notes" spellcheck="false" aria-label="Notepad" placeholder="Type here. Markdown works: # heading, - list, - [ ] task, **bold**. Saved on this device only."></textarea>
+        <div class="note">markdown, saved as you type, stays on this device</div>
+      </div>
+    </section>
+  </div>
+
+  <section class="section">
+    <h2 class="sh">Categories</h2>
+    <div class="cats" id="cats"></div>
+    <p class="empty" id="noCats" hidden>Categories come from the folders on your favourites bar. Add a folder with a few links and it appears here.</p>
+  </section>
+</main>
+<pre id="perf" hidden></pre>
+<script src="src/palette.js"></script>
+<script src="src/wireframes.js"></script>
+<script src="src/glyphs.js"></script>
+<script src="src/settings.js"></script>
+<script src="src/media.js"></script>
+<script src="src/popover.js"></script>
+<script src="src/store.js"></script>
+<script src="src/bookmarks.js"></script>
+<script src="src/render.js"></script>
+<script src="src/layout.js"></script>
+<script src="src/hl.js"></script>
+<script src="src/md.js"></script>
+<script src="newtab.js"></script>
+</body></html>

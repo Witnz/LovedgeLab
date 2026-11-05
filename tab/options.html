@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>LovedgeLab settings</title>
+<link rel="stylesheet" href="options.css"></head>
+<body>
+<header class="bar">
+  <div class="brand"><img src="icons/icon48.png" alt="" width="28" height="28"><span>Lovedge<b>Lab</b></span><small>Customise</small></div>
+  <span id="status" role="status" aria-live="polite"></span>
+</header>
+<div class="wrap">
+<main>
+
+<section class="card" id="theme">
+  <h2>Colours</h2>
+  <p class="hint">Pick a base, then bend any colour. The preview on the right updates as you drag.</p>
+  <div class="presets" id="presets" role="radiogroup" aria-label="Base theme"></div>
+  <div class="swatches" id="swatches"></div>
+  <div class="row">
+    <button id="shuffle" type="button">Shuffle accents</button>
+    <button id="resetColors" type="button">Reset colours</button>
+    <label>Effects <select id="effects"><option value="full">Full (glow and motion)</option><option value="lite">Lite (no blur or glow)</option><option value="off">Off (flat, no motion)</option></select></label>
+  </div>
+  <ul class="warn" id="warnings" hidden></ul>
+</section>
+
+<section class="card" id="sites">
+  <h2>Quick sites</h2>
+  <p class="hint">Up to 12 big tiles. Each gets a wireframe sketch and an icon: choose a built-in sketch or upload your own SVG, and use the site's favicon or your own image.</p>
+  <div id="siteList"></div>
+  <div class="row"><button id="addSite" type="button">Add a site</button><span class="hint" id="siteCount"></span></div>
+</section>
+
+<section class="card" id="cats">
+  <h2>Categories</h2>
+  <p class="hint">Categories follow the folders on your favourites bar, in the same order. Choose a glyph or upload an icon for each.</p>
+  <div id="catList"></div>
+</section>
+
+<section class="card" id="display">
+  <h2>Display</h2>
+  <label>Max categories per row <input id="maxCats" type="number" min="2" max="12"></label>
+  <label><input id="clock" type="checkbox"> Show greeting and clock</label>
+  <label><input id="newTab" type="checkbox"> Open links in a new tab</label>
+  <label><input id="favicons" type="checkbox"> Show site favicons</label>
+</section>
+
+<section class="card" id="browser">
+  <h2>Browser theme</h2>
+  <p class="hint">An extension cannot recolour the browser frame by itself, so LovedgeLab builds a matching theme from your colours.</p>
+  <div class="row"><button id="themeZip" type="button">Download matching theme (.zip)</button></div>
+  <ol class="hint">
+    <li>Unzip the download.</li>
+    <li>Open <code>edge://extensions</code> and turn on Developer mode.</li>
+    <li>Choose Load unpacked and pick the unzipped folder.</li>
+  </ol>
+</section>
+
+<section class="card" id="sync">
+  <h2>Sync and backup</h2>
+  <p class="hint">Colours, sites, wireframes and icons sync through your Microsoft account when Edge sync is on for extensions. Notes stay on this device.</p>
+  <div class="meter" aria-hidden="true"><i id="meterFill"></i></div>
+  <p class="hint" id="meterText"></p>
+  <div class="row">
+    <button id="export" type="button">Export settings</button>
+    <label class="btn">Import settings <input id="import" type="file" accept="application/json,.json" hidden></label>
+    <button id="reset" type="button">Reset everything</button>
+  </div>
+</section>
+
+</main>
+<aside class="preview" aria-label="Live preview">
+  <div class="pframe"><iframe id="preview" src="newtab.html?embed" title="Live preview of the new tab"></iframe></div>
+</aside>
+</div>
+<script src="src/palette.js"></script>
+<script src="src/wireframes.js"></script>
+<script src="src/glyphs.js"></script>
+<script src="src/settings.js"></script>
+<script src="src/media.js"></script>
+<script src="src/store.js"></script>
+<script src="src/bookmarks.js"></script>
+<script src="src/themegen.js"></script>
+<script src="options.js"></script>
+</body></html>
