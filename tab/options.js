@@ -40,9 +40,12 @@
     clearTimeout(saveTimer);
     saveTimer = setTimeout(persist, now ? 0 : 400);
   }
-  function persist() {
-    return store.save(s, m).then(function (bytes) { status("Saved"); meter(bytes); })
-      .catch(function (e) { status(e.message || "Could not save.", true); });
+  async function persist() {
+    try {
+      var bytes = await store.save(s, m);
+      status("Saved");
+      meter(bytes);
+    } catch (e) { status(e.message || "Could not save.", true); }
   }
   function meter(bytes) {
     var q = store.QUOTA, pct = Math.min(100, Math.round(bytes / q * 100));
@@ -117,7 +120,7 @@
     var box = el.closest(".site").querySelector(".serr");
     box.hidden = !msg; box.textContent = msg || "";
   }
-  $("siteList").addEventListener("change", function (e) {
+  $("siteList").addEventListener("change", async function (e) {
     var a = e.target.dataset.a, t = tileOf(e.target); if (!a || !t) return;
     siteError(e.target, "");
     if (a === "label") t.label = e.target.value.trim().slice(0, Settings.LIMITS.label) || t.label;
@@ -132,16 +135,15 @@
     else if (a === "wffile") {
       var f = e.target.files[0]; e.target.value = "";
       if (!f) return;
-      return f.text().then(function (txt) {
-        var r = Media.sanitizeSvg(txt);
-        if (!r.ok) return siteError(e.target, r.error);
-        m.wf[t.id] = r.svg; renderSites(); changed(true);
-      });
+      var r = Media.sanitizeSvg(await f.text());
+      if (!r.ok) return siteError(e.target, r.error);
+      m.wf[t.id] = r.svg; renderSites(); changed(true);
+      return;
     } else if (a === "icfile") {
       var g = e.target.files[0]; e.target.value = "";
       if (!g) return;
-      return Media.fitIcon(g).then(function (url) { m.ic[t.id] = url; renderSites(); changed(true); })
-        .catch(function (err) { siteError(e.target, err.message); });
+      try { m.ic[t.id] = await Media.fitIcon(g); renderSites(); changed(true); } catch (err) { siteError(e.target, err.message); }
+      return;
     }
     changed();
   });
@@ -174,7 +176,7 @@
         '<select data-a="acc" aria-label="Accent"><option value="">auto colour</option>' + opts(Palette.ACCENT, o.accent, cap) + "</select></div>";
     }).join("") : '<p class="hint">No folders on your favourites bar yet.</p>';
   }
-  $("catList").addEventListener("change", function (e) {
+  $("catList").addEventListener("change", async function (e) {
     var row = e.target.closest(".cat"), a = e.target.dataset.a; if (!row || !a) return;
     var n = row.dataset.n, o = s.categories[n] = s.categories[n] || {};
     if (a === "vis") { if (e.target.checked) delete o.hidden; else o.hidden = true; }
@@ -183,7 +185,8 @@
     else if (a === "file") {
       var f = e.target.files[0]; e.target.value = "";
       if (!f) return;
-      return Media.fitIcon(f).then(function (url) { m.cat[n] = url; renderCats(); changed(true); }).catch(function (err) { status(err.message, true); });
+      try { m.cat[n] = await Media.fitIcon(f); renderCats(); changed(true); } catch (err) { status(err.message, true); }
+      return;
     }
     changed();
   });
@@ -211,16 +214,16 @@
   });
   $("themeZip").addEventListener("click", function () { download("lovedgelab-theme.zip", "application/zip", ThemeGen.themeZip(palette())); });
   $("export").addEventListener("click", function () { download("lovedgelab-settings.json", "application/json", JSON.stringify({ lovedgelab: 1, settings: s, media: m }, null, 2)); });
-  $("import").addEventListener("change", function (e) {
+  $("import").addEventListener("change", async function (e) {
     var f = e.target.files[0]; e.target.value = "";
     if (!f) return;
     if (f.size > 2 * 1024 * 1024) return status("That file is too large.", true);
-    f.text().then(function (t) {
-      var d; try { d = JSON.parse(t); } catch (err) { throw new Error("That file is not valid JSON."); }
+    try {
+      var d; try { d = JSON.parse(await f.text()); } catch (err) { throw new Error("That file is not valid JSON."); }
       if (!d || d.lovedgelab !== 1) throw new Error("That is not a LovedgeLab export.");
       var clean = Store.unpack(Store.pack(Settings.merge(d.settings), d.media || {}));
       s = clean.settings; m = clean.media; renderAll(); changed(true);
-    }).catch(function (err) { status(err.message, true); });
+    } catch (err) { status(err.message, true); }
   });
   $("reset").addEventListener("click", function () {
     if (!confirm("Reset all LovedgeLab settings, sites and images to the defaults?")) return;
@@ -243,11 +246,15 @@
   $("preview").addEventListener("load", preview);
 
   /* ---- boot ---- */
-  store.load().then(function (loaded) {
-    s = loaded.settings; m = loaded.media; renderAll();
-    return Promise.all([store.usage().then(meter), Promise.resolve().then(function () { try { return chrome.bookmarks.getTree(); } catch (e) { return []; } })]);
-  }).then(function (r) {
-    folders = Bookmarks.folderNames(r[1]);
-    renderCats();
-  }).catch(function (e) { status(e.message || "Could not load settings.", true); });
+  (async function boot() {
+    try {
+      var loaded = await store.load();
+      s = loaded.settings; m = loaded.media; renderAll();
+      var tree = [];
+      try { tree = await chrome.bookmarks.getTree(); } catch (e) { /* bookmarks unavailable: no folders to list */ }
+      meter(await store.usage());
+      folders = Bookmarks.folderNames(tree);
+      renderCats();
+    } catch (e) { status(e.message || "Could not load settings.", true); }
+  })();
 })();

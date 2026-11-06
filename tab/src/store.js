@@ -49,19 +49,23 @@
 
   function make(area) {
     return {
-      load: () => area.get(null).then(unpack),
+      load: async () => unpack(await area.get(null)),
       /* writes the new items, then removes keys that are no longer used */
-      save: function (settings, media) {
+      save: async function (settings, media) {
         const items = pack(settings, media);
-        if (Object.keys(items).length > MAX_ITEMS) return Promise.reject(new Error("Too many items for sync storage."));
+        if (Object.keys(items).length > MAX_ITEMS) throw new Error("Too many items for sync storage.");
         const total = bytes(items);
-        if (total > QUOTA) return Promise.reject(new Error("Over the sync storage limit (" + total + " of " + QUOTA + " bytes). Remove a custom image."));
-        return area.get(null).then(all => {
-          const stale = Object.keys(all).filter(k => isStoreKey(k) && !(k in items));
-          return area.set(items).then(() => stale.length ? area.remove(stale) : null);
-        }).then(() => total);
+        if (total > QUOTA) throw new Error("Over the sync storage limit (" + total + " of " + QUOTA + " bytes). Remove a custom image.");
+        const all = await area.get(null);
+        const stale = Object.keys(all).filter(k => isStoreKey(k) && !(k in items));
+        await area.set(items);
+        if (stale.length) await area.remove(stale);
+        return total;
       },
-      usage: () => area.get(null).then(all => bytes(Object.keys(all).filter(isStoreKey).reduce((o, k) => (o[k] = all[k], o), {})))
+      usage: async () => {
+        const all = await area.get(null);
+        return bytes(Object.keys(all).filter(isStoreKey).reduce((o, k) => (o[k] = all[k], o), {}));
+      }
     };
   }
 
@@ -70,9 +74,9 @@
     const sync = chrome.storage.sync, local = chrome.storage.local;
     const s = make(sync), l = make(local);
     return {
-      load: () => s.load().catch(() => l.load()),
-      save: (a, b) => s.save(a, b).catch(err => /limit|Too many/.test(err.message) ? Promise.reject(err) : l.save(a, b)),
-      usage: () => s.usage().catch(() => 0),
+      load: async () => { try { return await s.load(); } catch (e) { return l.load(); } },
+      save: async (a, b) => { try { return await s.save(a, b); } catch (err) { if (/limit|Too many/.test(err.message)) throw err; return l.save(a, b); } },
+      usage: async () => { try { return await s.usage(); } catch (e) { return 0; } },
       QUOTA: QUOTA
     };
   }

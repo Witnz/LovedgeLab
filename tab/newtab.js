@@ -100,8 +100,8 @@ performance.mark("script-start");
   performance.mark("cache-painted");
 
   /* ---- 2. async reconcile against stored settings and live bookmarks ---- */
-  function getTree() {
-    try { return chrome.bookmarks.getTree().catch(function () { return []; }); } catch (e) { return Promise.resolve([]); }
+  async function getTree() {
+    try { return await chrome.bookmarks.getTree(); } catch (e) { return []; }
   }
   function adopt(loaded, cats) {
     var sh = Settings.hash([loaded.settings, loaded.media]), bh = Bookmarks.hash(cats);
@@ -114,19 +114,21 @@ performance.mark("script-start");
     cache = { sh: sh, bh: bh, width: state.width, settings: state.settings, media: state.media, cats: cats, notes: notesEl.value };
     Cache.write(cache);
   }
-  function reconcile(live) {
-    return Promise.all([store.load(), getTree()]).then(function (r) {
+  async function reconcile(live) {
+    try {
+      var r = await Promise.all([store.load(), getTree()]);
       adopt(r[0], Bookmarks.group(r[1], r[0].settings.categories));
       performance.mark("reconcile-done");
-      if (live) return;
-      return chrome.storage.local.get("notes").then(function (n) {
+      if (!live) {
+        var n = await chrome.storage.local.get("notes");
         if (!state.notesDirty && typeof n.notes === "string" && n.notes !== notesEl.value) {
           notesEl.value = n.notes;
           Cache.patch({ notes: n.notes });
           showNotes();
         }
-      });
-    }).catch(function (e) { console.error("LovedgeLab reconcile failed", e); }).then(showPerf);
+      }
+    } catch (e) { console.error("LovedgeLab reconcile failed", e); }
+    showPerf();
   }
   reconcile();
 
@@ -149,10 +151,10 @@ performance.mark("script-start");
   } catch (e) { /* storage events unavailable */ }
   document.addEventListener("visibilitychange", function () { if (stale && document.visibilityState === "visible") liveRefresh(); });
   /* the options page streams unsaved changes here so its preview is instant */
-  window.addEventListener("message", function (e) {
+  window.addEventListener("message", async function (e) {
     if (e.origin !== location.origin || !e.data || e.data.lovedge !== "preview") return;
     var clean = Store.unpack(Store.pack(Settings.merge(e.data.settings), e.data.media || {}));
-    getTree().then(function (tree) { adopt(clean, Bookmarks.group(tree, clean.settings.categories)); });
+    adopt(clean, Bookmarks.group(await getTree(), clean.settings.categories));
   });
 
   /* ---- resize: recompute columns from ResizeObserver, never from layout reads ---- */
@@ -186,16 +188,17 @@ performance.mark("script-start");
 
   /* ---- notepad (local to this device) ---- */
   var saveTimer = 0, savedPill = $("saved");
-  function saveNotes() {
+  async function saveNotes() {
     clearTimeout(saveTimer);
     if (!state.notesDirty) return;
     state.notesDirty = false;
     var v = notesEl.value;
     Cache.patch({ notes: v });
-    chrome.storage.local.set({ notes: v }).then(function () {
+    try {
+      await chrome.storage.local.set({ notes: v });
       savedPill.classList.add("on");
       setTimeout(function () { savedPill.classList.remove("on"); }, 1200);
-    });
+    } catch (e) { console.error("LovedgeLab could not save notes", e); }
   }
   notesEl.addEventListener("blur", function () { saveNotes(); showNotes(); });
   notesEl.addEventListener("keydown", function (e) { if (e.key === "Escape") notesEl.blur(); });
