@@ -203,6 +203,12 @@
     a.click();
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
   }
+  /* back to the real new tab (the browser maps chrome://newtab to the override); plain link is the fallback */
+  $("back").addEventListener("click", function (e) {
+    try {
+      if (chrome.tabs && chrome.tabs.update) { e.preventDefault(); chrome.tabs.update({ url: "chrome://newtab/" }); }
+    } catch (err) { /* follow the link */ }
+  });
   $("themeZip").addEventListener("click", function () { download("lovedgelab-theme.zip", "application/zip", ThemeGen.themeZip(palette())); });
   $("export").addEventListener("click", function () { download("lovedgelab-settings.json", "application/json", JSON.stringify({ lovedgelab: 1, settings: s, media: m }, null, 2)); });
   $("import").addEventListener("change", function (e) {

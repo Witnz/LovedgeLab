@@ -9,7 +9,12 @@ body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.4 "Segoe
 .brand small { margin-left: 6px; font-size: 12px; font-weight: 400; color: var(--fg-dark); letter-spacing: .1em; text-transform: uppercase; }
 #status { margin-left: auto; font-size: 12px; color: var(--green); }
 #status.err { color: var(--red); }
-.wrap { display: grid; grid-template-columns: minmax(0, 640px) minmax(0, 1fr); gap: 24px; max-width: 1500px; margin: 0 auto; padding: 20px 24px 60px; align-items: start; }
+.back { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid var(--gutter); border-radius: 8px; background: var(--hl); color: var(--fg); text-decoration: none; font-size: 13px; white-space: nowrap; }
+.back:hover, .back:focus-visible { border-color: var(--blue); color: var(--blue); }
+/* fills the window: settings cards flow into as many columns as fit, preview takes the rest */
+.wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(360px, 42%); gap: 24px; padding: 20px clamp(16px, 2vw, 40px) 60px; align-items: start; }
+main { column-width: 460px; column-gap: 16px; }
+main .card { break-inside: avoid; }
 .preview { position: sticky; top: 64px; }
 .pframe { border: 1px solid var(--gutter); border-radius: 14px; overflow: hidden; background: var(--bg); box-shadow: 0 10px 30px var(--shadow); aspect-ratio: 16 / 10; }
 .pframe iframe { width: 1440px; height: 900px; border: 0; transform-origin: 0 0; transform: scale(var(--k, .5)); display: block; }
@@ -28,11 +33,11 @@ button:disabled:hover { border-color: var(--gutter); color: var(--fg); }
 :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 
-.presets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-.preset { display: flex; flex-direction: column; gap: 8px; align-items: stretch; padding: 10px; border-radius: 12px; text-align: left; }
+.presets { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 10px; }
+.preset { display: flex; flex-direction: column; gap: 8px; align-items: stretch; min-width: 0; padding: 8px; border-radius: 12px; text-align: left; }
 .preset[aria-checked="true"] { border-color: var(--blue); box-shadow: 0 0 0 1px var(--blue); }
-.preset .dots { display: flex; gap: 4px; padding: 8px; border-radius: 8px; }
-.preset .dots i { width: 12px; height: 12px; border-radius: 50%; display: block; }
+.preset .dots { display: flex; justify-content: space-between; gap: 3px; padding: 6px; border-radius: 8px; }
+.preset .dots i { width: 10px; height: 10px; border-radius: 50%; display: block; flex: none; }
 .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px 14px; }
 .swatch { gap: 8px; font-size: 12.5px; }
 .swatch input[type=color] { width: 34px; height: 26px; padding: 0; border: 1px solid var(--gutter); border-radius: 6px; background: none; cursor: pointer; }
@@ -54,4 +59,4 @@ button:disabled:hover { border-color: var(--gutter); color: var(--fg); }
 .cat .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .meter { height: 8px; border-radius: 99px; background: var(--bg); border: 1px solid var(--gutter); overflow: hidden; }
 .meter i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--blue), var(--magenta)); transition: width .3s; }
-@media (max-width: 1100px) { .wrap { grid-template-columns: minmax(0, 1fr); } .preview { display: none; } .presets { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 1100px) { .wrap { grid-template-columns: minmax(0, 1fr); } .preview { display: none; } }
